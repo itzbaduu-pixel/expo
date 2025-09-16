@@ -5,24 +5,28 @@ import { VideoSource, VideoPlayer } from './VideoPlayer.types';
 import resolveAssetSource from './resolveAssetSource';
 
 // TODO: Temporary solution until we develop a way of overriding prototypes that won't break the lazy loading of the module.
-const replace = NativeVideoModule.VideoPlayer.prototype.replace;
-NativeVideoModule.VideoPlayer.prototype.replace = function (
-  source: VideoSource,
-  disableWarning: boolean = false
-) {
-  if (!disableWarning) {
-    console.warn(
-      'On iOS `VideoPlayer.replace` loads the asset data synchronously on the main thread, which can lead to UI freezes and will be deprecated in a future release. Switch to `replaceAsync` for better user experience.'
-    );
-  }
 
-  return replace.call(this, parseSource(source));
-};
+if (NativeVideoModule && NativeVideoModule.VideoPlayer && NativeVideoModule.VideoPlayer.prototype) {
+  const replace = NativeVideoModule.VideoPlayer.prototype.replace;
+  NativeVideoModule.VideoPlayer.prototype.replace = function (
+    source: VideoSource,
+    disableWarning: boolean = false
+  ) {
+    if (!disableWarning) {
+      console.warn(
+        'On iOS `VideoPlayer.replace` loads the asset data synchronously on the main thread, which can lead to UI freezes and will be deprecated in a future release. Switch to `replaceAsync` for better user experience.'
+      );
+    }
 
-const replaceAsync = NativeVideoModule.VideoPlayer.prototype.replaceAsync;
-NativeVideoModule.VideoPlayer.prototype.replaceAsync = function (source: VideoSource) {
-  return replaceAsync.call(this, parseSource(source));
-};
+    return replace.call(this, parseSource(source));
+  };
+
+  const replaceAsync = NativeVideoModule.VideoPlayer.prototype.replaceAsync;
+  NativeVideoModule.VideoPlayer.prototype.replaceAsync = function (source: VideoSource) {
+    return replaceAsync.call(this, parseSource(source));
+  };
+}
+
 /**
  * Creates a direct instance of `VideoPlayer` that doesn't release automatically.
  *
@@ -45,7 +49,7 @@ export function useVideoPlayer(
   const parsedSource = parseSource(source);
 
   return useReleasingSharedObject(() => {
-    const player = new NativeVideoModule.VideoPlayer(parsedSource);
+    const player = createVideoPlayer(source);
     setup?.(player);
     return player;
   }, [JSON.stringify(parsedSource)]);
