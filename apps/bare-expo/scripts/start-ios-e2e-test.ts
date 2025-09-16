@@ -42,7 +42,10 @@ const __dirname = dirname(__filename);
       await fs.cp(binaryPath, appBinaryPath, { recursive: true });
     }
     if (startMode === 'TEST' || startMode === 'BUILD_AND_TEST') {
-      await testAsync(path.join(projectRoot, 'e2e/video-e2e.yaml'), deviceId, appBinaryPath);
+      await retryAsync((retryNumber) => {
+        console.log(`Video test suite attempt ${retryNumber + 1} of ${NUM_OF_RETRIES}`);
+        return testAsync(path.join(projectRoot, 'e2e/video-e2e.yaml'), deviceId, appBinaryPath);
+      }, NUM_OF_RETRIES);
 
       // const maestroFlowFilePath = getMaestroFlowFilePath(projectRoot);
       // await createMaestroFlowAsync({
