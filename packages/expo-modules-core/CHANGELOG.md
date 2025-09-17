@@ -8,6 +8,8 @@
 
 ### 🐛 Bug fixes
 
+- Fix SharedObject created with `useReleasingSharedObject` getting destroyed after a fast refresh caused by a change in its dependencies. ([#39753](https://github.com/expo/expo/pull/39753) by [@behenate](https://github.com/behenate))
+
 ### 💡 Others
 
 ## 3.0.16 — 2025-09-16
